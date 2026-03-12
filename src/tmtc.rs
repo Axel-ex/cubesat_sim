@@ -15,15 +15,6 @@ use log::error;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-//
-// ===== Command types (input) =====
-// Expect newline-delimited JSON like:
-// {"id":1,"cmd":"camera.capture"}
-// {"id":2,"cmd":"eps.read_main_voltage"}
-// {"id":3,"cmd":"health.get"}
-// {"id":4,"cmd":"mode.set","mode":"SAFE"}
-//
-
 #[derive(Debug, Deserialize)]
 #[serde(tag = "cmd")]
 pub enum Command {
@@ -58,22 +49,7 @@ pub fn parse_cmd(cmd_string: &str) -> Result<Command> {
     Ok(serde_json::from_str::<Command>(cmd_string)?)
 }
 
-//
-// ===== Telemetry types (output) =====
-// You can keep it very simple: one response per command, plus optional health snapshots.
-// Everything is one outbound stream: JSON line per event.
-//
-
-#[derive(Debug, Serialize)]
-pub struct TcResponse {
-    pub id: u64,
-    pub ok: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
+// TELEMETRY
 #[derive(Debug, Serialize)]
 #[serde(tag = "type")]
 pub enum TelemetryEvent {
@@ -95,12 +71,6 @@ pub fn serialize_telemetry(evt: &TelemetryEvent) -> Result<String> {
     Ok(serde_json::to_string(evt)?)
 }
 
-//
-// ===== Dispatch wiring =====
-// Here dispatch_cmd only forwards parsed commands to the internal command handler.
-// The "real" dispatch happens elsewhere (camera/eps/fdir tasks).
-//
-
 pub async fn dispatch_cmd(cmd: Command, cmd_sender: &mpsc::Sender<Command>) {
     if let Err(e) = cmd_sender.send(cmd).await {
         error!("Command channel send failed: {}", e);
@@ -114,8 +84,6 @@ pub async fn dispatch_cmd(cmd: Command, cmd_sender: &mpsc::Sender<Command>) {
 // cmd_sender: parsed commands forwarded to the system
 // telemetry_rcv: typed telemetry events coming from the system
 // telemetry_sender: serialized JSON lines to comms writer
-//
-
 pub async fn tmtc_task(
     mut cmd_rcv: mpsc::Receiver<String>,
     cmd_sender: mpsc::Sender<Command>,
