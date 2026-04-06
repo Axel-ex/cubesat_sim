@@ -54,7 +54,7 @@ pub fn parse_cmd(cmd_string: &str) -> Result<Command> {
 #[serde(tag = "type")]
 pub enum TelemetryEvent {
     #[serde(rename = "tc_response")]
-    TcResponse(TcResponse),
+    TcResponse { response_code: u32 },
 
     #[serde(rename = "health")]
     Health {
@@ -85,7 +85,7 @@ pub async fn dispatch_cmd(cmd: Command, cmd_sender: &mpsc::Sender<Command>) {
 // telemetry_rcv: typed telemetry events coming from the system
 // telemetry_sender: serialized JSON lines to comms writer
 pub async fn tmtc_task(
-    mut cmd_rcv: mpsc::Receiver<String>,
+    mut raw_cmd_rcv: mpsc::Receiver<String>,
     cmd_sender: mpsc::Sender<Command>,
     mut telemetry_rcv: mpsc::Receiver<TelemetryEvent>,
     telemetry_sender: mpsc::Sender<String>,
@@ -93,7 +93,7 @@ pub async fn tmtc_task(
     loop {
         tokio::select! {
             // inbound commands
-            maybe_cmd = cmd_rcv.recv() => {
+            maybe_cmd = raw_cmd_rcv.recv() => {
                 let Some(cmd_string) = maybe_cmd else {
                     // command input closed
                     break;
