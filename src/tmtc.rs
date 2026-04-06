@@ -7,11 +7,9 @@
 // - receives typed TelemetryEvent from the system
 // - serializes to JSON line (String)
 // - forwards JSON line to comms for writing
-//
-// This is intentionally minimal and matches the structure you had.
 
 use anyhow::Result;
-use log::error;
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
@@ -83,12 +81,10 @@ pub async fn dispatch_cmd(cmd: Command, cmd_sender: &mpsc::Sender<Command>) {
 // cmd_rcv: raw command lines from comms (already line-framed)
 // cmd_sender: parsed commands forwarded to the system
 // telemetry_rcv: typed telemetry events coming from the system
-// telemetry_sender: serialized JSON lines to comms writer
 pub async fn tmtc_task(
     mut raw_cmd_rcv: mpsc::Receiver<String>,
     cmd_sender: mpsc::Sender<Command>,
     mut telemetry_rcv: mpsc::Receiver<TelemetryEvent>,
-    telemetry_sender: mpsc::Sender<String>,
 ) -> Result<()> {
     loop {
         tokio::select! {
@@ -114,9 +110,8 @@ pub async fn tmtc_task(
 
                 match serialize_telemetry(&evt) {
                     Ok(line) => {
-                        if let Err(e) = telemetry_sender.send(line).await {
-                            error!("Telemetry channel send failed: {}", e);
-                        }
+                        info!("{:?}", line); //just print it, in real life write to file / queue
+                                             //for downlink
                     }
                     Err(e) => error!("Telemetry serialization error: {}", e),
                 }

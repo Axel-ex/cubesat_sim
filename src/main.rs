@@ -15,18 +15,11 @@ async fn main() -> Result<()> {
     let (raw_cmd_sender, raw_cmd_rcvr) = channel(1000);
     // tmtc task receive telemetry event from from susystems (senders)
     let (telemetry_sender, telemetry_rcvr) = channel(1000);
-    // tmtc task sends telemetry event as raw bytes, coms subsystem downlinks it
-    let (raw_telemetry_sender, raw_telemetry_rcvr) = channel(1000);
     //subsystems receive command from tmtc task
     let (cmd_sender, cmd_rcvr) = channel(1000);
 
     tokio::task::spawn(radio_task(raw_cmd_sender)).await??;
-    tokio::task::spawn(tmtc_task(
-        raw_cmd_rcvr,
-        cmd_sender,
-        telemetry_rcvr,
-        raw_telemetry_sender,
-    ));
+    tokio::task::spawn(tmtc_task(raw_cmd_rcvr, cmd_sender, telemetry_rcvr));
 
     let mut state = SatState::new();
     loop {}
