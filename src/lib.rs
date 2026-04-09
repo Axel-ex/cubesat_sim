@@ -1,3 +1,4 @@
+pub mod command;
 pub mod state;
-pub mod subsystems;
-pub mod tmtc;
+pub mod tasks;
+pub mod telemetry;

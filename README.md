@@ -1,0 +1,5 @@
+- [x] create socket for comms with the program (radio.rs)
+- [ ] connect radio to the main ("scheduler") with a tx and rx channel so telemetry can be send to radio for downlink and uplink commands are processed
+- [ ] process Telemetry packet and serialize them to json and forward to radion task 
+- [ ] define a spec for how packet are formed to follow, train parsing / serialize desirialize
+- [ ] Create Event handler that collects event and log them 

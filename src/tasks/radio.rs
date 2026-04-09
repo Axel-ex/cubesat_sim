@@ -2,16 +2,20 @@
 //!
 //! open a socket and listenb for incoming connections. "nc localhost 8080" to pen a connection
 //! with the sim
-use crate::tmtc::Command;
 use anyhow::Result;
 use log::{error, info};
 use tokio::sync::mpsc;
 use tokio::{io::AsyncReadExt, net::TcpListener};
 
+use crate::telemetry::TelemetryEvent;
+
 const ADDR: &str = "127.0.0.1:8080";
 
 #[allow(unreachable_code)]
-pub async fn radio_task(raw_cmd_sender: mpsc::Sender<String>) -> Result<()> {
+pub async fn radio_task(
+    raw_cmd_sender: mpsc::Sender<String>,
+    telemetry_rcvr: mpsc::Receiver<String>,
+) -> Result<()> {
     let listener = TcpListener::bind(ADDR).await?;
     info!("Comm system listening at address {}", ADDR);
 
@@ -37,6 +41,9 @@ pub async fn radio_task(raw_cmd_sender: mpsc::Sender<String>) -> Result<()> {
                     break;
                 }
             }
+
+            // try receive telemetry packet
+            todo!()
         }
     }
 

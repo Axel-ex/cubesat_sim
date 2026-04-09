@@ -8,7 +8,7 @@ pub struct SatState {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Mode {
-    NOMINAL, //mission mode
+    NOMINAL,
     DEGRADED,
     SAFE,
 }
